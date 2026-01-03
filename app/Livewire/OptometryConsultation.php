@@ -6,6 +6,7 @@ use Livewire\Component;
 
 class OptometryConsultation extends Component
 {
+    public $consultation_id;
     public $patient_id;
     public $consultation_date;
     public $right_eye = ['sph' => '', 'cyl' => '', 'axis' => '', 'add' => ''];
@@ -17,9 +18,39 @@ class OptometryConsultation extends Component
     public $tax = 0;
     public $total = 0;
 
-    public function mount()
+    public function mount(\App\Models\Consultation $consultation = null)
     {
-        $this->consultation_date = date('Y-m-d');
+        if ($consultation && $consultation->exists) {
+            $this->consultation_id = $consultation->id;
+            $this->patient_id = $consultation->patient_id;
+            $this->consultation_date = $consultation->consultation_date->format('Y-m-d');
+            $this->right_eye = [
+                'sph' => $consultation->right_eye_sph,
+                'cyl' => $consultation->right_eye_cyl,
+                'axis' => $consultation->right_eye_axis,
+                'add' => $consultation->right_eye_add,
+            ];
+            $this->left_eye = [
+                'sph' => $consultation->left_eye_sph,
+                'cyl' => $consultation->left_eye_cyl,
+                'axis' => $consultation->left_eye_axis,
+                'add' => $consultation->left_eye_add,
+            ];
+            $this->internal_notes = $consultation->internal_notes;
+            $this->subtotal = $consultation->subtotal;
+            $this->tax = $consultation->tax;
+            $this->total = $consultation->total;
+
+            foreach ($consultation->products as $product) {
+                $this->selected_products[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $product->pivot->quantity,
+                    'price' => $product->pivot->price_at_time,
+                ];
+            }
+        } else {
+            $this->consultation_date = date('Y-m-d');
+        }
     }
 
     public function addProduct()
@@ -37,7 +68,8 @@ class OptometryConsultation extends Component
     public function updatedSelectedProducts($value, $key)
     {
         if (str_ends_with($key, '.product_id')) {
-            $index = explode('.', $key)[0];
+            $parts = explode('.', $key);
+            $index = $parts[0];
             $product = \App\Models\Product::find($value);
             if ($product) {
                 $this->selected_products[$index]['price'] = $product->price;
@@ -63,7 +95,7 @@ class OptometryConsultation extends Component
             'consultation_date' => 'required|date',
         ]);
 
-        $consultation = \App\Models\Consultation::create([
+        $data = [
             'patient_id' => $this->patient_id,
             'consultation_date' => $this->consultation_date,
             'right_eye_sph' => $this->right_eye['sph'],
@@ -78,7 +110,15 @@ class OptometryConsultation extends Component
             'tax' => $this->tax,
             'total' => $this->total,
             'internal_notes' => $this->internal_notes,
-        ]);
+        ];
+
+        if ($this->consultation_id) {
+            $consultation = \App\Models\Consultation::find($this->consultation_id);
+            $consultation->update($data);
+            $consultation->products()->detach();
+        } else {
+            $consultation = \App\Models\Consultation::create($data);
+        }
 
         foreach ($this->selected_products as $p) {
             if ($p['product_id']) {
@@ -89,7 +129,7 @@ class OptometryConsultation extends Component
             }
         }
 
-        session()->flash('message', 'Consulta guardada exitosamente.');
+        session()->flash('message', $this->consultation_id ? 'Consulta actualizada exitosamente.' : 'Consulta guardada exitosamente.');
         return redirect()->route('home');
     }
 

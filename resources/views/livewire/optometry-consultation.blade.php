@@ -1,12 +1,12 @@
 <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h1 style="font-size: 2.5rem; margin: 0; color: var(--primary);">Nueva Consulta</h1>
+            <h1 style="font-size: 2.5rem; margin: 0; color: var(--primary);">{{ $consultation_id ? 'Editar Consulta' : 'Nueva Consulta' }}</h1>
             <p style="color: var(--text-muted);">Registro clínico y facturación optométrica</p>
         </div>
         <div style="text-align: right;">
             <p style="font-weight: 600; margin: 0;">Fecha: {{ $consultation_date }}</p>
-            <p style="color: var(--text-muted); font-size: 0.8rem;">Folio: #ABS-{{ time() }}</p>
+            <p style="color: var(--text-muted); font-size: 0.8rem;">Folio: #{{ $consultation_id ? 'EDIT-'.str_pad($consultation_id, 5, '0', STR_PAD_LEFT) : 'NEW-'.time() }}</p>
         </div>
     </div>
 

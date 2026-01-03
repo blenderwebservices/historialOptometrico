@@ -26,6 +26,10 @@ class Consultation extends Model
         'internal_notes',
     ];
 
+    protected $casts = [
+        'consultation_date' => 'date',
+    ];
+
     public function patient()
     {
         return $this->belongsTo(Patient::class);
