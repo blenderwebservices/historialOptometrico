@@ -187,8 +187,7 @@ return [
          */
 
         Lab404\Impersonate\ImpersonateServiceProvider::class,
-        Wave\WaveServiceProvider::class,
-        DevDojo\Themes\ThemesServiceProvider::class,
+
 
         /*
          * Application Service Providers...
@@ -197,6 +196,7 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\Filament\AdminPanelProvider::class,
         App\Providers\RouteServiceProvider::class,
 
     ],

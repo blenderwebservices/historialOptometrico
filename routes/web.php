@@ -13,16 +13,8 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use TCG\Voyager\Facades\Voyager;
-use Wave\Facades\Wave;
 
-// Authentication routes
-Auth::routes();
 
-// Voyager Admin routes
-Route::group(['prefix' => 'admin'], function () {
-    Voyager::routes();
-});
+Route::get('/', \App\Livewire\ConsultationList::class)->name('home');
 
-// Wave routes
-Wave::routes();
+Route::get('/consultation-new', \App\Livewire\OptometryConsultation::class)->name('consultation.new');
