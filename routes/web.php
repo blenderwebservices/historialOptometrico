@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', \App\Livewire\ConsultationList::class)->name('home');
+Route::get('/', function () {
+    return view('landing');
+})->name('home');
 
-Route::get('/consultation-new', \App\Livewire\OptometryConsultation::class)->name('consultation.new');
-Route::get('/consultation/{consultation}/edit', \App\Livewire\OptometryConsultation::class)->name('consultation.edit');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/consultations', \App\Livewire\ConsultationList::class)->name('consultations.list');
+    Route::get('/consultation-new', \App\Livewire\OptometryConsultation::class)->name('consultation.new');
+    Route::get('/consultation/{consultation}/edit', \App\Livewire\OptometryConsultation::class)->name('consultation.edit');
+});

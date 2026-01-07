@@ -19,6 +19,9 @@ class User extends Authenticatable
         'email',
         'username',
         'password',
+        'avatar',
+        'role',
+        'settings',
         'verification_code',
         'verified',
         'trial_ends_at',
@@ -41,5 +44,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'settings' => 'array',
+        'verified' => 'boolean',
     ];
 }
