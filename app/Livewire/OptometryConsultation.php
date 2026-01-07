@@ -13,10 +13,25 @@ class OptometryConsultation extends Component
     public $left_eye = ['sph' => '', 'cyl' => '', 'axis' => '', 'add' => ''];
     public $selected_products = [];
     public $internal_notes;
-    
+
     public $subtotal = 0;
     public $tax = 0;
     public $total = 0;
+
+    // Patient Selection & Modal Search
+    public $patient_search = '';
+    public $show_patient_dropdown = false;
+
+    // Quick Patient Modal Fields
+    public $show_patient_modal = false;
+    public $new_patient = [
+        'name' => '',
+        'last_name' => '',
+        'phone' => '',
+        'email' => '',
+        'birth_date' => '',
+        'address' => '',
+    ];
 
     public function mount(\App\Models\Consultation $consultation = null)
     {
@@ -88,6 +103,60 @@ class OptometryConsultation extends Component
         $this->total = $this->subtotal + $this->tax;
     }
 
+    public function quickAddPatient()
+    {
+        if (empty($this->patient_search))
+            return;
+
+        $names = explode(' ', $this->patient_search, 2);
+        $patient = \App\Models\Patient::create([
+            'name' => $names[0],
+            'last_name' => $names[1] ?? '',
+        ]);
+
+        $this->selectPatient($patient->id);
+        $this->patient_search = '';
+        $this->show_patient_dropdown = false;
+    }
+
+    public function openPatientModal()
+    {
+        $this->new_patient = [
+            'name' => $this->patient_search,
+            'last_name' => '',
+            'phone' => '',
+            'email' => '',
+            'birth_date' => '',
+            'address' => '',
+        ];
+        $this->show_patient_modal = true;
+        $this->show_patient_dropdown = false;
+    }
+
+    public function savePatient()
+    {
+        $this->validate([
+            'new_patient.name' => 'required',
+            'new_patient.last_name' => 'required',
+        ]);
+
+        $patient = \App\Models\Patient::create($this->new_patient);
+
+        $this->selectPatient($patient->id);
+        $this->show_patient_modal = false;
+        $this->patient_search = '';
+    }
+
+    public function selectPatient($id)
+    {
+        $this->patient_id = $id;
+        $this->show_patient_dropdown = false;
+        $patient = \App\Models\Patient::find($id);
+        if ($patient) {
+            $this->patient_search = $patient->name . ' ' . $patient->last_name;
+        }
+    }
+
     public function save()
     {
         $this->validate([
@@ -135,8 +204,16 @@ class OptometryConsultation extends Component
 
     public function render()
     {
+        $patients_query = \App\Models\Patient::query();
+        if ($this->patient_search && !$this->patient_id) {
+            $patients_query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->patient_search . '%')
+                    ->orWhere('last_name', 'like', '%' . $this->patient_search . '%');
+            });
+        }
+
         return view('livewire.optometry-consultation', [
-            'patients' => \App\Models\Patient::all(),
+            'patients' => $patients_query->get(),
             'products' => \App\Models\Product::all(),
         ])->layout('layouts.app');
     }
