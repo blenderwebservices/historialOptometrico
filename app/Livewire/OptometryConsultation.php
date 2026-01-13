@@ -20,7 +20,6 @@ class OptometryConsultation extends Component
 
     // Patient Selection & Modal Search
     public $patient_search = '';
-    public $show_patient_dropdown = false;
 
     // Quick Patient Modal Fields
     public $show_patient_modal = false;
@@ -103,6 +102,11 @@ class OptometryConsultation extends Component
         $this->total = $this->subtotal + $this->tax;
     }
 
+    public function updatedPatientSearch($value)
+    {
+        $this->patient_id = null;
+    }
+
     public function quickAddPatient()
     {
         if (empty($this->patient_search))
@@ -116,7 +120,6 @@ class OptometryConsultation extends Component
 
         $this->selectPatient($patient->id);
         $this->patient_search = '';
-        $this->show_patient_dropdown = false;
     }
 
     public function openPatientModal()
@@ -130,27 +133,28 @@ class OptometryConsultation extends Component
             'address' => '',
         ];
         $this->show_patient_modal = true;
-        $this->show_patient_dropdown = false;
     }
 
     public function savePatient()
     {
         $this->validate([
-            'new_patient.name' => 'required',
-            'new_patient.last_name' => 'required',
+            'new_patient.name' => 'required|min:2',
+            'new_patient.last_name' => 'required|min:2',
+            'new_patient.phone' => 'nullable',
+            'new_patient.email' => 'nullable|email',
+            'new_patient.birth_date' => 'nullable|date',
+            'new_patient.address' => 'nullable',
         ]);
 
         $patient = \App\Models\Patient::create($this->new_patient);
 
         $this->selectPatient($patient->id);
         $this->show_patient_modal = false;
-        $this->patient_search = '';
     }
 
     public function selectPatient($id)
     {
         $this->patient_id = $id;
-        $this->show_patient_dropdown = false;
         $patient = \App\Models\Patient::find($id);
         if ($patient) {
             $this->patient_search = $patient->name . ' ' . $patient->last_name;
@@ -204,16 +208,17 @@ class OptometryConsultation extends Component
 
     public function render()
     {
-        $patients_query = \App\Models\Patient::query();
-        if ($this->patient_search && !$this->patient_id) {
-            $patients_query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->patient_search . '%')
-                    ->orWhere('last_name', 'like', '%' . $this->patient_search . '%');
-            });
+        $patients = collect();
+        $search = trim($this->patient_search);
+        if ($search !== '') {
+            $searchTerm = '%' . mb_strtolower($search, 'UTF-8') . '%';
+            $patients = \App\Models\Patient::whereRaw("LOWER(CONCAT_WS(' ', name, last_name)) LIKE ?", [$searchTerm])
+                ->limit(10)
+                ->get();
         }
 
         return view('livewire.optometry-consultation', [
-            'patients' => $patients_query->get(),
+            'patients' => $patients,
             'products' => \App\Models\Product::all(),
         ])->layout('layouts.app');
     }

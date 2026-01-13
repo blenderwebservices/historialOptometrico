@@ -2,13 +2,15 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h1 style="font-size: 2.5rem; margin: 0; color: var(--primary);">
-                {{ $consultation_id ? 'Editar Consulta' : 'Nueva Consulta' }}</h1>
+                {{ $consultation_id ? 'Editar Consulta' : 'Nueva Consulta' }}
+            </h1>
             <p style="color: var(--text-muted);">Registro clínico y facturación optométrica</p>
         </div>
         <div style="text-align: right;">
             <p style="font-weight: 600; margin: 0;">Fecha: {{ $consultation_date }}</p>
             <p style="color: var(--text-muted); font-size: 0.8rem;">Folio:
-                #{{ $consultation_id ? 'EDIT-' . str_pad($consultation_id, 5, '0', STR_PAD_LEFT) : 'NEW-' . time() }}</p>
+                #{{ $consultation_id ? 'EDIT-' . str_pad($consultation_id, 5, '0', STR_PAD_LEFT) : 'NEW-' . time() }}
+            </p>
         </div>
     </div>
 
@@ -22,44 +24,56 @@
         <!-- Patient Column -->
         <div class="card" style="background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
             <h3>Paciente</h3>
-            <div style="margin-top: 1rem; position: relative;" x-data="{ open: @entangle('show_patient_dropdown') }">
+            <div style="margin-top: 1rem; position: relative;" x-data="{ open: false }">
                 <label>Seleccionar Paciente</label>
                 <div style="position: relative;">
-                    <input type="text" wire:model.live.debounce.300ms="patient_search" x-on:focus="open = true"
-                        placeholder="Buscar o escribir nombre para agregar..."
+                    <input type="text" wire:model.live.debounce.150ms="patient_search" x-on:focus="open = true"
+                        x-on:input="open = true" autocomplete="off" placeholder="Buscar por nombre o apellido..."
                         style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.5rem 1rem;">
 
                     @if($patient_id)
-                        <button wire:click="$set('patient_id', null); $set('patient_search', '')"
+                        <button wire:click="$set('patient_id', null)"
                             style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; color: #94a3b8;">
                             ✕
                         </button>
                     @endif
                 </div>
 
-                <div x-show="open" x-on:click.away="open = false"
-                    style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); z-index: 50; margin-top: 0.25rem; max-height: 200px; overflow-y: auto;">
+                <div x-show="open && $wire.patient_search" x-on:click.away="open = false"
+                    style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid var(--primary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 1000; margin-top: 0.25rem; max-height: 250px; overflow-y: auto;">
 
-                    @foreach($patients as $patient)
-                        <div wire:click="selectPatient({{ $patient->id }})"
-                            style="padding: 0.5rem 1rem; cursor: pointer; border-bottom: 1px solid #f1f5f9;"
-                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                            {{ $patient->name }} {{ $patient->last_name }}
-                        </div>
-                    @endforeach
+                    <div wire:loading wire:target="patient_search"
+                        style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                        Buscando...
+                    </div>
 
-                    @if($patient_search && count($patients) === 0)
-                        <div wire:click="quickAddPatient"
-                            style="padding: 0.5rem 1rem; cursor: pointer; color: var(--primary); font-weight: 500;"
-                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                            Agregar "{{ $patient_search }}" ...
-                        </div>
-                    @endif
+                    <div wire:loading.remove wire:target="patient_search">
+                        @foreach($patients as $patient)
+                            <button type="button" wire:key="patient-{{ $patient->id }}"
+                                wire:click.prevent="selectPatient({{ $patient->id }}); open = false"
+                                style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; border: none; border-bottom: 1px solid #f1f5f9; background: white; display: block;"
+                                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                <span style="font-weight: 600; color: #1e293b; display: block;">{{ $patient->name }}
+                                    {{ $patient->last_name }}</span>
+                            </button>
+                        @endforeach
 
-                    <div wire:click="openPatientModal"
-                        style="padding: 0.5rem 1rem; cursor: pointer; color: var(--primary); font-weight: 500; border-top: 2px solid #f1f5f9;"
-                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                        Agregar y editar ...
+                        @if($patient_search && count($patients) === 0)
+                            <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                                No se encontraron pacientes.
+                            </div>
+                            <button type="button" wire:click.prevent="quickAddPatient(); open = false"
+                                style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; color: var(--primary); font-weight: 600; border: none; background: white; border-bottom: 1px solid #f1f5f9;"
+                                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                + Crear "{{ $patient_search }}"
+                            </button>
+                        @endif
+
+                        <button type="button" wire:click.prevent="openPatientModal(); open = false"
+                            style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; color: var(--primary); font-weight: 600; border: none; border-top: 2px solid #f1f5f9; background: #f8fafc;"
+                            onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+                            ⚙️ Agregar y editar detalles completos...
+                        </button>
                     </div>
                 </div>
             </div>
