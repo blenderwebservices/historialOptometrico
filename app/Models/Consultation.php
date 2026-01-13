@@ -38,7 +38,12 @@ class Consultation extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, 'consultation_products')
-                    ->withPivot('quantity', 'price_at_time')
-                    ->withTimestamps();
+            ->withPivot('quantity', 'price_at_time')
+            ->withTimestamps();
+    }
+
+    public function consultationProducts()
+    {
+        return $this->hasMany(ConsultationProduct::class);
     }
 }

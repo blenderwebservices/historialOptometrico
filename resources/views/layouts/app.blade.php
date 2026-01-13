@@ -200,7 +200,7 @@
             padding-bottom: 4rem;
         }
     </style>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @filamentStyles
     @livewireStyles
 </head>
 
@@ -249,6 +249,7 @@
         @endif
     </div>
     @livewireScripts
+    @filamentScripts
 </body>
 
 </html>

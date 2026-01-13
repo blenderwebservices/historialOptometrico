@@ -27,7 +27,7 @@ class ConsultationResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('patient_id')
                             ->relationship('patient', 'name')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->last_name}")
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->last_name}")
                             ->searchable()
                             ->preload()
                             ->required(),
@@ -45,7 +45,7 @@ class ConsultationResource extends Resource
                                 Forms\Components\TextInput::make('right_eye_cyl')->label('Cilindro (CYL)'),
                                 Forms\Components\TextInput::make('right_eye_axis')->label('Eje (AXIS)'),
                                 Forms\Components\TextInput::make('right_eye_add')->label('Adición (ADD)'),
-                                
+
                                 Forms\Components\Placeholder::make('eye_label_l')->label('Ojo Izquierdo (OI)')->columnSpan(4),
                                 Forms\Components\TextInput::make('left_eye_sph')->label('Esfera (SPH)'),
                                 Forms\Components\TextInput::make('left_eye_cyl')->label('Cilindro (CYL)'),
@@ -56,14 +56,15 @@ class ConsultationResource extends Resource
 
                 Forms\Components\Section::make('Productos / Venta')
                     ->schema([
-                        Forms\Components\Repeater::make('products')
+                        Forms\Components\Repeater::make('consultationProducts')
                             ->relationship()
                             ->schema([
                                 Forms\Components\Select::make('product_id')
-                                    ->relationship('products', 'name')
+                                    ->relationship('product', 'name')
                                     ->required()
                                     ->reactive()
-                                    ->afterStateUpdated(fn (Forms\Set $set, $state) => 
+                                    ->afterStateUpdated(
+                                        fn(Forms\Set $set, $state) =>
                                         $set('price_at_time', \App\Models\Product::find($state)?->price ?? 0)
                                     )
                                     ->columnSpan(3),
@@ -83,7 +84,7 @@ class ConsultationResource extends Resource
                             ->columns(6)
                             ->live()
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
-                                $products = $get('products') ?? [];
+                                $products = $get('consultationProducts') ?? [];
                                 $subtotal = 0;
                                 foreach ($products as $product) {
                                     $subtotal += ($product['quantity'] ?? 0) * ($product['price_at_time'] ?? 0);

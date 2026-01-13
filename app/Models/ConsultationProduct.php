@@ -15,4 +15,14 @@ class ConsultationProduct extends Model
         'quantity',
         'price_at_time',
     ];
+
+    public function consultation()
+    {
+        return $this->belongsTo(Consultation::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

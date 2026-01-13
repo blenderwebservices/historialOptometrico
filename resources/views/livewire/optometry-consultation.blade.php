@@ -1,240 +1,105 @@
 <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <style>
+        .fi-section {
+            background: rgba(255, 255, 255, 0.4) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05) !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .fi-section-header-title {
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 700 !important;
+            color: var(--primary) !important;
+            font-size: 1.1rem !important;
+        }
+
+        .fi-input-wrp {
+            border-radius: 12px !important;
+            border-color: #e2e8f0 !important;
+            background: white !important;
+            box-shadow: none !important;
+        }
+
+        .fi-input-wrp:focus-within {
+            border-color: var(--primary) !important;
+            ring: 2px var(--primary-light) !important;
+        }
+
+        /* Fix repeater item styling */
+        .fi-fo-repeater-item {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 16px !important;
+            margin-bottom: 1rem !important;
+            padding: 1rem !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* Fix the delete button appearance and header */
+        .fi-fo-repeater-item-header {
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+            margin-bottom: 0.5rem !important;
+            background: transparent !important;
+        }
+
+        .fi-fo-repeater-item-remove-action {
+            color: #ef4444 !important;
+        }
+
+        /* Clean up select dropdowns and titles */
+        .fi-select-input {
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .fi-fo-repeater-empty-state {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-radius: 16px !important;
+            border: 2px dashed #e2e8f0 !important;
+        }
+    </style>
+
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; animation: fadeIn 0.8s ease-out;">
         <div>
-            <h1 style="font-size: 2.5rem; margin: 0; color: var(--primary);">
+            <h1 style="font-size: 2.8rem; margin: 0; color: var(--primary); letter-spacing: -0.02em;">
                 {{ $consultation_id ? 'Editar Consulta' : 'Nueva Consulta' }}
             </h1>
-            <p style="color: var(--text-muted);">Registro clínico y facturación optométrica</p>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.25rem;">Registro clínico y facturación
+                optométrica de alta precisión</p>
         </div>
-        <div style="text-align: right;">
-            <p style="font-weight: 600; margin: 0;">Fecha: {{ $consultation_date }}</p>
-            <p style="color: var(--text-muted); font-size: 0.8rem;">Folio:
-                #{{ $consultation_id ? 'EDIT-' . str_pad($consultation_id, 5, '0', STR_PAD_LEFT) : 'NEW-' . time() }}
+        <div
+            style="text-align: right; background: white; padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <p style="font-weight: 700; margin: 0; color: var(--text-main);">Fecha: {{ date('d-m-Y') }}</p>
+            <p style="color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem;">
+                FOLIO #{{ $consultation_id ? str_pad($consultation_id, 5, '0', STR_PAD_LEFT) : 'NEW-' . time() }}
             </p>
         </div>
     </div>
 
     @if (session()->has('message'))
-        <div style="background: #dcfce7; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
-            {{ session('message') }}
-        </div>
-    @endif
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-        <!-- Patient Column -->
-        <div class="card" style="background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
-            <h3>Paciente</h3>
-            <div style="margin-top: 1rem; position: relative;" x-data="{ open: false }">
-                <label>Seleccionar Paciente</label>
-                <div style="position: relative;">
-                    <input type="text" wire:model.live.debounce.150ms="patient_search" x-on:focus="open = true"
-                        x-on:input="open = true" autocomplete="off" placeholder="Buscar por nombre o apellido..."
-                        style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.5rem 1rem;">
-
-                    @if($patient_id)
-                        <button wire:click="$set('patient_id', null)"
-                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; color: #94a3b8;">
-                            ✕
-                        </button>
-                    @endif
-                </div>
-
-                <div x-show="open && $wire.patient_search" x-on:click.away="open = false"
-                    style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid var(--primary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 1000; margin-top: 0.25rem; max-height: 250px; overflow-y: auto;">
-
-                    <div wire:loading wire:target="patient_search"
-                        style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
-                        Buscando...
-                    </div>
-
-                    <div wire:loading.remove wire:target="patient_search">
-                        @foreach($patients as $patient)
-                            <button type="button" wire:key="patient-{{ $patient->id }}"
-                                wire:click.prevent="selectPatient({{ $patient->id }}); open = false"
-                                style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; border: none; border-bottom: 1px solid #f1f5f9; background: white; display: block;"
-                                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                <span style="font-weight: 600; color: #1e293b; display: block;">{{ $patient->name }}
-                                    {{ $patient->last_name }}</span>
-                            </button>
-                        @endforeach
-
-                        @if($patient_search && count($patients) === 0)
-                            <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
-                                No se encontraron pacientes.
-                            </div>
-                            <button type="button" wire:click.prevent="quickAddPatient(); open = false"
-                                style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; color: var(--primary); font-weight: 600; border: none; background: white; border-bottom: 1px solid #f1f5f9;"
-                                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                + Crear "{{ $patient_search }}"
-                            </button>
-                        @endif
-
-                        <button type="button" wire:click.prevent="openPatientModal(); open = false"
-                            style="width: 100%; text-align: left; padding: 0.85rem 1rem; cursor: pointer; color: var(--primary); font-weight: 600; border: none; border-top: 2px solid #f1f5f9; background: #f8fafc;"
-                            onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-                            ⚙️ Agregar y editar detalles completos...
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div style="margin-top: 1rem;">
-                <label>Notas Internas</label>
-                <textarea wire:model="internal_notes" rows="3"></textarea>
-            </div>
-        </div>
-
-        <!-- Prescription Column -->
-        <div class="card" style="background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
-            <h3>Graduación (Receta)</h3>
-            <div style="margin-top: 1rem;">
-                <p
-                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--primary);">
-                    Ojo Derecho (OD)</p>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
-                    <div><label>SPH</label><input type="text" wire:model="right_eye.sph"></div>
-                    <div><label>CYL</label><input type="text" wire:model="right_eye.cyl"></div>
-                    <div><label>AXIS</label><input type="text" wire:model="right_eye.axis"></div>
-                    <div><label>ADD</label><input type="text" wire:model="right_eye.add"></div>
-                </div>
-
-                <p
-                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--primary);">
-                    Ojo Izquierdo (OI)</p>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
-                    <div><label>SPH</label><input type="text" wire:model="left_eye.sph"></div>
-                    <div><label>CYL</label><input type="text" wire:model="left_eye.cyl"></div>
-                    <div><label>AXIS</label><input type="text" wire:model="left_eye.axis"></div>
-                    <div><label>ADD</label><input type="text" wire:model="left_eye.add"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Products Section -->
-    <div style="margin-top: 2rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3>Detalle de Venta</h3>
-            <button class="btn-primary" wire:click="addProduct" style="padding: 0.5rem 1rem; font-size: 0.8rem;">+
-                Agregar Producto</button>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 2px solid #f1f5f9;">
-                    <th style="padding: 1rem;">Producto</th>
-                    <th style="padding: 1rem; width: 100px;">Cantidad</th>
-                    <th style="padding: 1rem; width: 150px;">P. Unitario</th>
-                    <th style="padding: 1rem; width: 150px;">Importe</th>
-                    <th style="padding: 1rem; width: 50px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($selected_products as $index => $item)
-                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 0.5rem;">
-                            <select wire:model="selected_products.{{ $index }}.product_id">
-                                <option value="">Seleccione...</option>
-                                @foreach($products as $prod)
-                                    <option value="{{ $prod->id }}">{{ $prod->name }} ({{ $prod->brand }})</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td style="padding: 0.5rem;">
-                            <input type="number" wire:model="selected_products.{{ $index }}.quantity">
-                        </td>
-                        <td style="padding: 0.5rem;">
-                            <input type="number" wire:model="selected_products.{{ $index }}.price" step="0.01">
-                        </td>
-                        <td style="padding: 0.5rem; font-weight: 500;">
-                            ${{ number_format(($item['quantity'] ?? 0) * ($item['price'] ?? 0), 2) }}
-                        </td>
-                        <td style="padding: 0.5rem;">
-                            <button wire:click="removeProduct({{ $index }})"
-                                style="color: #ef4444; background: none; border: none; cursor: pointer;">✕</button>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        @if(count($selected_products) == 0)
-            <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay productos agregados.</p>
-        @endif
-    </div>
-
-    <!-- Totals Area -->
-    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-        <div style="width: 300px; background: #f8fafc; padding: 1.5rem; border-radius: 16px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <span color="var(--text-muted)">Subtotal:</span>
-                <span style="font-weight: 600;">${{ number_format($subtotal, 2) }}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <span color="var(--text-muted)">IVA (16%):</span>
-                <span style="font-weight: 600;">${{ number_format($tax, 2) }}</span>
-            </div>
-            <div
-                style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #e2e8f0;">
-                <span style="font-weight: 700; font-size: 1.25rem;">Total:</span>
-                <span
-                    style="font-weight: 700; font-size: 1.25rem; color: var(--primary);">${{ number_format($total, 2) }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
-        <a href="{{ route('home') }}" class="btn-primary" style="background: #94a3b8; text-decoration: none;">Cancelar y
-            Volver</a>
-        <button class="btn-primary" wire:click="save" style="background: #10b981;">Guardar Consulta y Finalizar</button>
-    </div>
-
-    <!-- Patient Modal -->
-    @if ($show_patient_modal)
         <div
-            style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-            <div
-                style="background: white; border-radius: 16px; width: 100%; max-width: 600px; padding: 2rem; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);">
-                <h2 style="margin-top: 0; color: var(--primary);">Nuevo Paciente</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
-                    <div>
-                        <label>Nombre(s)</label>
-                        <input type="text" wire:model="new_patient.name" style="width: 100%;">
-                        @error('new_patient.name')
-                            <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label>Apellidos</label>
-                        <input type="text" wire:model="new_patient.last_name" style="width: 100%;">
-                        @error('new_patient.last_name')
-                            <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label>Teléfono</label>
-                        <input type="text" wire:model="new_patient.phone" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label>Email</label>
-                        <input type="email" wire:model="new_patient.email" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label>Fecha de Nacimiento</label>
-                        <input type="date" wire:model="new_patient.birth_date" style="width: 100%;">
-                    </div>
-                    <div style="grid-column: span 2;">
-                        <label>Dirección</label>
-                        <textarea wire:model="new_patient.address" rows="2" style="width: 100%;"></textarea>
-                    </div>
-                </div>
-                <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
-                    <button wire:click="$set('show_patient_modal', false)"
-                        style="background: #94a3b8; border: none; color: white; padding: 0.75rem 1.5rem; border-radius: 10px; cursor: pointer;">Cancelar</button>
-                    <button wire:click="savePatient"
-                        style="background: var(--primary); border: none; color: white; padding: 0.75rem 1.5rem; border-radius: 10px; cursor: pointer;">Guardar
-                        Paciente</button>
-                </div>
-            </div>
+            style="background: #ecfdf5; color: #065f46; padding: 1.25rem; border-radius: 16px; border: 1px solid #a7f3d0; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; animation: fadeIn 0.5s ease-out;">
+            <span style="font-size: 1.25rem;">✅</span> {{ session('message') }}
         </div>
     @endif
+
+    <form wire:submit.prevent="save" class="space-y-8">
+        {{ $this->form }}
+
+        <div
+            style="margin-top: 3rem; display: flex; justify-content: flex-end; gap: 1.5rem; padding-top: 2rem; border-top: 2px solid #f1f5f9;">
+            <a href="{{ route('home') }}" class="btn-primary"
+                style="background: #f1f5f9; color: #64748b; text-decoration: none; display: flex; align-items: center; border: 1px solid #cbd5e1; box-shadow: none;">
+                Cancelar
+            </a>
+            <button type="submit" class="btn-primary"
+                style="background: var(--primary); padding-left: 2rem; padding-right: 2rem;">
+                Finalizar y Guardar Consulta
+            </button>
+        </div>
+    </form>
 </div>
