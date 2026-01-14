@@ -66,131 +66,187 @@ class OptometryConsultation extends Component implements HasForms
     {
         return $form
             ->schema([
-                Forms\Components\Grid::make(12)
-                    ->schema([
-                        // Left Column: Patient and Date
-                        Forms\Components\Section::make('Información del Paciente')
-                            ->schema([
-                                Forms\Components\Select::make('patient_id')
-                                    ->label('Seleccionar Paciente')
-                                    ->relationship('patient', 'name')
-                                    ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->last_name}")
-                                    ->searchable()
-                                    ->preload()
-                                    ->createOptionForm([
-                                        Forms\Components\TextInput::make('name')
-                                            ->required(),
-                                        Forms\Components\TextInput::make('last_name')
-                                            ->required(),
-                                        Forms\Components\TextInput::make('phone'),
-                                        Forms\Components\TextInput::make('email')
-                                            ->email(),
-                                        Forms\Components\DatePicker::make('birth_date'),
-                                        Forms\Components\Textarea::make('address'),
-                                    ])
-                                    ->required(),
-                                Forms\Components\DatePicker::make('consultation_date')
-                                    ->label('Fecha')
-                                    ->required()
-                                    ->default(now()),
-                            ])
-                            ->columnSpan(5),
-
-                        // Right Column: Prescription
-                        Forms\Components\Section::make('Graduación (Receta)')
-                            ->schema([
-                                Forms\Components\Grid::make(4)
+                    Forms\Components\Grid::make(12)
+                        ->schema([
+                                // Left Column: Patient and Date
+                                Forms\Components\Section::make('Información del Paciente')
                                     ->schema([
-                                        Forms\Components\Placeholder::make('eye_label_r')
-                                            ->label('Ojo Derecho (OD)')
-                                            ->content('')
-                                            ->columnSpan(4)
-                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase;']),
-                                        Forms\Components\TextInput::make('right_eye_sph')->label('SPH'),
-                                        Forms\Components\TextInput::make('right_eye_cyl')->label('CYL'),
-                                        Forms\Components\TextInput::make('right_eye_axis')->label('AXIS'),
-                                        Forms\Components\TextInput::make('right_eye_add')->label('ADD'),
+                                            Forms\Components\Select::make('patient_id')
+                                                ->label('Seleccionar Paciente')
+                                                ->relationship('patient', 'name')
+                                                ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->last_name}")
+                                                ->searchable()
+                                                ->preload()
+                                                ->createOptionForm([
+                                                        Forms\Components\TextInput::make('name')
+                                                            ->required(),
+                                                        Forms\Components\TextInput::make('last_name')
+                                                            ->required(),
+                                                        Forms\Components\TextInput::make('phone'),
+                                                        Forms\Components\TextInput::make('email')
+                                                            ->email(),
+                                                        Forms\Components\DatePicker::make('birth_date'),
+                                                        Forms\Components\Textarea::make('address'),
+                                                    ])
+                                                ->required(),
+                                            Forms\Components\DatePicker::make('consultation_date')
+                                                ->label('Fecha')
+                                                ->required()
+                                                ->default(now()),
+                                        ])
+                                    ->columnSpan(5),
 
-                                        Forms\Components\Placeholder::make('eye_label_l')
-                                            ->label('Ojo Izquierdo (OI)')
-                                            ->content('')
-                                            ->columnSpan(4)
-                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; margin-top: 1rem;']),
-                                        Forms\Components\TextInput::make('left_eye_sph')->label('SPH'),
-                                        Forms\Components\TextInput::make('left_eye_cyl')->label('CYL'),
-                                        Forms\Components\TextInput::make('left_eye_axis')->label('AXIS'),
-                                        Forms\Components\TextInput::make('left_eye_add')->label('ADD'),
-                                    ]),
-                            ])
-                            ->columnSpan(7),
-                    ]),
+                                // Right Column: Prescription
+                                Forms\Components\Section::make('Graduación (Receta)')
+                                    ->schema([
+                                            Forms\Components\Grid::make(4)
+                                                ->schema([
+                                                        Forms\Components\Placeholder::make('eye_label_r')
+                                                            ->label('Ojo Derecho (OD)')
+                                                            ->content('')
+                                                            ->columnSpan(4)
+                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase;']),
+                                                        Forms\Components\TextInput::make('right_eye_sph')
+                                                            ->label('SPH')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-20)
+                                                            ->maxValue(20)
+                                                            ->hint('Rango: -20 a +20')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_cyl')
+                                                            ->label('CYL')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-6)
+                                                            ->maxValue(6)
+                                                            ->hint('Rango: -6 a +6')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_axis')
+                                                            ->label('AXIS')
+                                                            ->numeric()
+                                                            ->step(1)
+                                                            ->minValue(0)
+                                                            ->maxValue(180)
+                                                            ->hint('Rango: 0 a 180°')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_add')
+                                                            ->label('ADD')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(0)
+                                                            ->maxValue(4)
+                                                            ->hint('Rango: 0 a 4')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
 
-                Forms\Components\Section::make('Productos / Detalle de Venta')
-                    ->schema([
-                        Forms\Components\Repeater::make('consultationProducts')
-                            ->relationship()
-                            ->schema([
-                                Forms\Components\Select::make('product_id')
-                                    ->label('Producto')
-                                    ->relationship('product', 'name')
-                                    ->required()
-                                    ->reactive()
-                                    ->afterStateUpdated(
-                                        fn(Forms\Set $set, $state) =>
-                                        $set('price_at_time', Product::find($state)?->price ?? 0)
-                                    )
-                                    ->columnSpan(3),
-                                Forms\Components\TextInput::make('quantity')
-                                    ->label('Cant.')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->required()
-                                    ->reactive()
-                                    ->columnSpan(1),
-                                Forms\Components\TextInput::make('price_at_time')
-                                    ->label('Precio Unit.')
-                                    ->numeric()
-                                    ->required()
-                                    ->prefix('$')
-                                    ->columnSpan(2),
-                            ])
-                            ->columns(6)
-                            ->live()
-                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
-                                $products = $get('consultationProducts') ?? [];
-                                $subtotal = 0;
-                                foreach ($products as $product) {
-                                    $subtotal += (float) ($product['quantity'] ?? 0) * (float) ($product['price_at_time'] ?? 0);
-                                }
-                                $set('subtotal', $subtotal);
-                                $set('total', $subtotal * 1.16);
-                                $set('tax', $subtotal * 0.16);
+                                                        Forms\Components\Placeholder::make('eye_label_l')
+                                                            ->label('Ojo Izquierdo (OI)')
+                                                            ->content('')
+                                                            ->columnSpan(4)
+                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; margin-top: 1rem;']),
+                                                        Forms\Components\TextInput::make('left_eye_sph')
+                                                            ->label('SPH')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-20)
+                                                            ->maxValue(20)
+                                                            ->hint('Rango: -20 a +20')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_cyl')
+                                                            ->label('CYL')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-6)
+                                                            ->maxValue(6)
+                                                            ->hint('Rango: -6 a +6')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_axis')
+                                                            ->label('AXIS')
+                                                            ->numeric()
+                                                            ->step(1)
+                                                            ->minValue(0)
+                                                            ->maxValue(180)
+                                                            ->hint('Rango: 0 a 180°')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_add')
+                                                            ->label('ADD')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(0)
+                                                            ->maxValue(4)
+                                                            ->hint('Rango: 0 a 4')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                    ]),
+                                        ])
+                                    ->columnSpan(7),
+                            ]),
 
-                                // Sync component properties for custom totals area
-                                $this->subtotal = $subtotal;
-                                $this->tax = $subtotal * 0.16;
-                                $this->total = $subtotal * 1.16;
-                            })
-                            ->itemLabel(fn(array $state): ?string => $state['product_id'] ? Product::find($state['product_id'])?->name : 'Nuevo Producto'),
-                    ]),
+                    Forms\Components\Section::make('Productos / Detalle de Venta')
+                        ->schema([
+                                Forms\Components\Repeater::make('consultationProducts')
+                                    ->relationship()
+                                    ->schema([
+                                            Forms\Components\Select::make('product_id')
+                                                ->label('Producto')
+                                                ->relationship('product', 'name')
+                                                ->required()
+                                                ->reactive()
+                                                ->afterStateUpdated(
+                                                    fn(Forms\Set $set, $state) =>
+                                                    $set('price_at_time', Product::find($state)?->price ?? 0)
+                                                )
+                                                ->columnSpan(3),
+                                            Forms\Components\TextInput::make('quantity')
+                                                ->label('Cant.')
+                                                ->numeric()
+                                                ->default(1)
+                                                ->required()
+                                                ->reactive()
+                                                ->columnSpan(1),
+                                            Forms\Components\TextInput::make('price_at_time')
+                                                ->label('Precio Unit.')
+                                                ->numeric()
+                                                ->required()
+                                                ->prefix('$')
+                                                ->columnSpan(2),
+                                        ])
+                                    ->columns(6)
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                        $products = $get('consultationProducts') ?? [];
+                                        $subtotal = 0;
+                                        foreach ($products as $product) {
+                                            $subtotal += (float) ($product['quantity'] ?? 0) * (float) ($product['price_at_time'] ?? 0);
+                                        }
+                                        $set('subtotal', $subtotal);
+                                        $set('total', $subtotal * 1.16);
+                                        $set('tax', $subtotal * 0.16);
 
-                // Totals and Notes Section
-                Forms\Components\Grid::make(12)
-                    ->schema([
-                        Forms\Components\Textarea::make('internal_notes')
-                            ->label('Notas Internas')
-                            ->rows(4)
-                            ->columnSpan(8),
+                                        // Sync component properties for custom totals area
+                                        $this->subtotal = $subtotal;
+                                        $this->tax = $subtotal * 0.16;
+                                        $this->total = $subtotal * 1.16;
+                                    })
+                                    ->itemLabel(fn(array $state): ?string => $state['product_id'] ? Product::find($state['product_id'])?->name : 'Nuevo Producto'),
+                            ]),
 
-                        Forms\Components\Section::make('Resumen')
-                            ->schema([
-                                Forms\Components\TextInput::make('subtotal')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
-                                Forms\Components\TextInput::make('tax')->label('IVA (16%)')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
-                                Forms\Components\TextInput::make('total')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 1.1rem;']),
-                            ])
-                            ->columnSpan(4),
-                    ]),
-            ])
+                    // Totals and Notes Section
+                    Forms\Components\Grid::make(12)
+                        ->schema([
+                                Forms\Components\Textarea::make('internal_notes')
+                                    ->label('Notas Internas')
+                                    ->rows(4)
+                                    ->columnSpan(8),
+
+                                Forms\Components\Section::make('Resumen')
+                                    ->schema([
+                                            Forms\Components\TextInput::make('subtotal')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
+                                            Forms\Components\TextInput::make('tax')->label('IVA (16%)')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
+                                            Forms\Components\TextInput::make('total')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 1.1rem;']),
+                                        ])
+                                    ->columnSpan(4),
+                            ]),
+                ])
             ->statePath('data')
             ->model($this->record);
     }
