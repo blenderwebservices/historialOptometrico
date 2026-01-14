@@ -23,90 +23,111 @@ class ConsultationResource extends Resource
     {
         return $form
             ->schema([
-                    Forms\Components\Section::make('Información del Paciente')
+                    Forms\Components\Grid::make(12)
                         ->schema([
-                                Forms\Components\Select::make('patient_id')
-                                    ->relationship('patient', 'name')
-                                    ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->last_name}")
-                                    ->searchable()
-                                    ->preload()
-                                    ->required(),
-                                Forms\Components\DatePicker::make('consultation_date')
-                                    ->default(now())
-                                    ->required(),
-                            ])->columns(2),
-
-                    Forms\Components\Section::make('Graduación (Receta)')
-                        ->schema([
-                                Forms\Components\Grid::make(4)
+                                Forms\Components\Section::make('Información del Paciente')
                                     ->schema([
-                                            Forms\Components\Placeholder::make('eye_label_r')->label('Ojo Derecho (OD)')->columnSpan(4),
-                                            Forms\Components\TextInput::make('right_eye_sph')
-                                                ->label('Esfera (SPH)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(-20)
-                                                ->maxValue(20)
-                                                ->hint('Rango: -20 a +20. Poder para miopía/hipermetropía.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('right_eye_cyl')
-                                                ->label('Cilindro (CYL)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(-6)
-                                                ->maxValue(6)
-                                                ->hint('Rango: -6 a +6. Corrección de astigmatismo.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('right_eye_axis')
-                                                ->label('Eje (AXIS)')
-                                                ->numeric()
-                                                ->step(1)
-                                                ->minValue(0)
-                                                ->maxValue(180)
-                                                ->hint('Rango: 0 a 180°. Orientación del astigmatismo.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('right_eye_add')
-                                                ->label('Adición (ADD)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(0)
-                                                ->maxValue(4)
-                                                ->hint('Rango: 0 a 4. Poder para visión de cerca.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
+                                            Forms\Components\Select::make('patient_id')
+                                                ->relationship('patient', 'name')
+                                                ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->last_name}")
+                                                ->searchable()
+                                                ->preload()
+                                                ->required(),
+                                            Forms\Components\DatePicker::make('consultation_date')
+                                                ->default(now())
+                                                ->required(),
+                                        ])
+                                    ->columns(2)
+                                    ->columnSpan(5)
+                                    ->extraAttributes([
+                                            'class' => 'relative z-[10] focus-within:z-[50]',
+                                        ]),
 
-                                            Forms\Components\Placeholder::make('eye_label_l')->label('Ojo Izquierdo (OI)')->columnSpan(4),
-                                            Forms\Components\TextInput::make('left_eye_sph')
-                                                ->label('Esfera (SPH)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(-20)
-                                                ->maxValue(20)
-                                                ->hint('Rango: -20 a +20. Poder para miopía/hipermetropía.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('left_eye_cyl')
-                                                ->label('Cilindro (CYL)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(-6)
-                                                ->maxValue(6)
-                                                ->hint('Rango: -6 a +6. Corrección de astigmatismo.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('left_eye_axis')
-                                                ->label('Eje (AXIS)')
-                                                ->numeric()
-                                                ->step(1)
-                                                ->minValue(0)
-                                                ->maxValue(180)
-                                                ->hint('Rango: 0 a 180°. Orientación del astigmatismo.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
-                                            Forms\Components\TextInput::make('left_eye_add')
-                                                ->label('Adición (ADD)')
-                                                ->numeric()
-                                                ->step(0.25)
-                                                ->minValue(0)
-                                                ->maxValue(4)
-                                                ->hint('Rango: 0 a 4. Poder para visión de cerca.')
-                                                ->hintIcon('heroicon-m-question-mark-circle'),
+                                Forms\Components\Section::make('Graduación (Receta)')
+                                    ->schema([
+                                            Forms\Components\Grid::make(4)
+                                                ->schema([
+                                                        Forms\Components\Placeholder::make('eye_label_r')
+                                                            ->label('Ojo Derecho (OD)')
+                                                            ->columnSpan(4)
+                                                            ->extraAttributes(['style' => 'font-weight: 700; margin-bottom: -1rem;']),
+                                                        Forms\Components\TextInput::make('right_eye_sph')
+                                                            ->label('Esfera (SPH)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-20)
+                                                            ->maxValue(20)
+                                                            ->hint('Rango: -20 a +20')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_cyl')
+                                                            ->label('Cilindro (CYL)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-6)
+                                                            ->maxValue(6)
+                                                            ->hint('Rango: -6 a +6')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_axis')
+                                                            ->label('Eje (AXIS)')
+                                                            ->numeric()
+                                                            ->step(1)
+                                                            ->minValue(0)
+                                                            ->maxValue(180)
+                                                            ->hint('Rango: 0 a 180°')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('right_eye_add')
+                                                            ->label('Adición (ADD)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(0)
+                                                            ->maxValue(4)
+                                                            ->hint('Rango: 0 a 4')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                    ])->columns(4),
+
+                                            Forms\Components\Grid::make(4)
+                                                ->schema([
+                                                        Forms\Components\Placeholder::make('eye_label_l')
+                                                            ->label('Ojo Izquierdo (OI)')
+                                                            ->columnSpan(4)
+                                                            ->extraAttributes(['style' => 'font-weight: 700; margin-top: 1rem; margin-bottom: -1rem;']),
+                                                        Forms\Components\TextInput::make('left_eye_sph')
+                                                            ->label('Esfera (SPH)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-20)
+                                                            ->maxValue(20)
+                                                            ->hint('Rango: -20 a +20')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_cyl')
+                                                            ->label('Cilindro (CYL)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(-6)
+                                                            ->maxValue(6)
+                                                            ->hint('Rango: -6 a +6')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_axis')
+                                                            ->label('Eje (AXIS)')
+                                                            ->numeric()
+                                                            ->step(1)
+                                                            ->minValue(0)
+                                                            ->maxValue(180)
+                                                            ->hint('Rango: 0 a 180°')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                        Forms\Components\TextInput::make('left_eye_add')
+                                                            ->label('Adición (ADD)')
+                                                            ->numeric()
+                                                            ->step(0.25)
+                                                            ->minValue(0)
+                                                            ->maxValue(4)
+                                                            ->hint('Rango: 0 a 4')
+                                                            ->hintIcon('heroicon-m-question-mark-circle'),
+                                                    ])->columns(4),
+                                        ])
+                                    ->columnSpan(7)
+                                    ->extraAttributes([
+                                            'class' => 'relative z-[5] focus-within:z-[50]',
                                         ]),
                             ]),
 

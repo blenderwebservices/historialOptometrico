@@ -67,9 +67,11 @@ class OptometryConsultation extends Component implements HasForms
         return $form
             ->schema([
                     Forms\Components\Grid::make(12)
+                        ->extraAttributes(['class' => 'custom-form-grid'])
                         ->schema([
                                 // Left Column: Patient and Date
                                 Forms\Components\Section::make('Información del Paciente')
+                                    ->extraAttributes(['class' => 'section-patient-info'])
                                     ->schema([
                                             Forms\Components\Select::make('patient_id')
                                                 ->label('Seleccionar Paciente')
@@ -98,6 +100,7 @@ class OptometryConsultation extends Component implements HasForms
 
                                 // Right Column: Prescription
                                 Forms\Components\Section::make('Graduación (Receta)')
+                                    ->extraAttributes(['class' => 'section-prescription'])
                                     ->schema([
                                             Forms\Components\Grid::make(4)
                                                 ->schema([
@@ -105,7 +108,7 @@ class OptometryConsultation extends Component implements HasForms
                                                             ->label('Ojo Derecho (OD)')
                                                             ->content('')
                                                             ->columnSpan(4)
-                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase;']),
+                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; margin-bottom: -1rem;']),
                                                         Forms\Components\TextInput::make('right_eye_sph')
                                                             ->label('SPH')
                                                             ->numeric()
@@ -138,12 +141,17 @@ class OptometryConsultation extends Component implements HasForms
                                                             ->maxValue(4)
                                                             ->hint('Rango: 0 a 4')
                                                             ->hintIcon('heroicon-m-question-mark-circle'),
+                                                    ])
+                                                ->columns(4)
+                                                ->extraAttributes(['class' => 'eye-values-grid']),
 
+                                            Forms\Components\Grid::make(4)
+                                                ->schema([
                                                         Forms\Components\Placeholder::make('eye_label_l')
                                                             ->label('Ojo Izquierdo (OI)')
                                                             ->content('')
                                                             ->columnSpan(4)
-                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; margin-top: 1rem;']),
+                                                            ->extraAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 0.75rem; text-transform: uppercase; margin-top: 1rem; margin-bottom: -1rem;']),
                                                         Forms\Components\TextInput::make('left_eye_sph')
                                                             ->label('SPH')
                                                             ->numeric()
@@ -176,9 +184,14 @@ class OptometryConsultation extends Component implements HasForms
                                                             ->maxValue(4)
                                                             ->hint('Rango: 0 a 4')
                                                             ->hintIcon('heroicon-m-question-mark-circle'),
-                                                    ]),
+                                                    ])
+                                                ->columns(4)
+                                                ->extraAttributes(['class' => 'eye-values-grid']),
                                         ])
-                                    ->columnSpan(7),
+                                    ->columnSpan(7)
+                                    ->extraAttributes([
+                                            'class' => 'relative z-[5] focus-within:z-[50]',
+                                        ]),
                             ]),
 
                     Forms\Components\Section::make('Productos / Detalle de Venta')

@@ -7,6 +7,12 @@
             border-radius: 20px !important;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05) !important;
             margin-bottom: 1.5rem !important;
+            position: relative !important;
+            z-index: 10;
+        }
+
+        .fi-section:focus-within {
+            z-index: 50 !important;
         }
 
         .fi-section-header-title {
@@ -81,28 +87,82 @@
             margin-bottom: 0.25rem !important;
         }
 
-        /* Fix the grid layout for graduation */
-        .fi-grid-cols-4 {
+        /* Custom Grid Fixes for Frontend */
+        .custom-form-grid {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* Ensure the main form and sections take full width of their containers */
+        form,
+        .fi-section {
+            width: 100% !important;
+        }
+
+        /* Desktop/Tablet Layout (>768px) */
+        @media (min-width: 768px) {
+
+            /* Force main 12-column grid */
+            .custom-form-grid>div {
+                display: grid !important;
+                grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+                gap: 1.5rem !important;
+                width: 100% !important;
+                align-items: start !important;
+            }
+
+            /* Target the section wrappers (the direct children of the grid) */
+            .custom-form-grid>div>div:nth-child(1) {
+                grid-column: span 5 / span 5 !important;
+            }
+
+            .custom-form-grid>div>div:nth-child(2) {
+                grid-column: span 7 / span 7 !important;
+            }
+
+            /* Eye Values Grid (Force 4 horizontal columns) */
+            .eye-values-grid>div {
+                display: grid !important;
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                gap: 1rem !important;
+                width: 100% !important;
+            }
+
+            /* Force eye fields into 1/4 width */
+            .eye-values-grid>div>div {
+                grid-column: span 1 / span 1 !important;
+            }
+
+            /* The eye label (first item) takes the full row of 4 */
+            .eye-values-grid>div>div:nth-child(1) {
+                grid-column: span 4 / span 4 !important;
+            }
+        }
+
+        /* Mobile Layout (<768px) */
+        @media (max-width: 767px) {
+            .eye-values-grid>div {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 1rem !important;
+            }
+        }
+
+        /* Essential Filament Fallbacks */
+        .fi-grid-cols-12,
+        .fi-grid-cols-4,
+        .fi-grid-cols-2 {
             display: grid !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 1.5rem !important;
         }
 
         @media (min-width: 768px) {
-            .fi-grid-cols-4 {
-                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            }
-        }
-
-        .fi-grid-cols-12 {
-            display: grid !important;
-            grid-template-columns: 1fr !important;
-            gap: 1.5rem !important;
-        }
-
-        @media (min-width: 1024px) {
             .fi-grid-cols-12 {
                 grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+            }
+
+            .fi-grid-cols-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
             }
         }
 
