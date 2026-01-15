@@ -27,6 +27,10 @@
             border-color: #e2e8f0 !important;
             background: white !important;
             box-shadow: none !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
         }
 
         .fi-input-wrp:focus-within {
@@ -46,10 +50,38 @@
 
         /* Fix the delete button appearance and header */
         .fi-fo-repeater-item-header {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
             border-bottom: none !important;
-            padding-bottom: 0 !important;
-            margin-bottom: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            margin-bottom: 1rem !important;
             background: transparent !important;
+        }
+
+        /* Target the title and the action list inside the header */
+        .fi-fo-repeater-item-header>h4 {
+            margin: 0 !important;
+            padding: 0 !important;
+            flex: 1 1 auto !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
+        .fi-fo-repeater-item-header>ul {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            flex: 0 0 auto !important;
+            margin-left: auto !important;
         }
 
         .fi-fo-repeater-item-remove-action {
@@ -136,6 +168,31 @@
             /* The eye label (first item) takes the full row of 4 */
             .eye-values-grid>div>div:nth-child(1) {
                 grid-column: span 4 / span 4 !important;
+            }
+
+            /* Products Repeater Fix (Forced horizontal grid) */
+            .products-repeater .fi-fo-repeater-item-content>div {
+                display: grid !important;
+                grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+                gap: 1.5rem !important;
+                width: 100% !important;
+            }
+
+            /* Proportional Spans (Product: 3/6, Quantity: 1/6, Price: 1/6, Total: 1/6) */
+            .products-repeater .fi-fo-repeater-item-content>div>div:nth-child(1) {
+                grid-column: span 3 / span 3 !important;
+            }
+
+            .products-repeater .fi-fo-repeater-item-content>div>div:nth-child(2) {
+                grid-column: span 1 / span 1 !important;
+            }
+
+            .products-repeater .fi-fo-repeater-item-content>div>div:nth-child(3) {
+                grid-column: span 1 / span 1 !important;
+            }
+
+            .products-repeater .fi-fo-repeater-item-content>div>div:nth-child(4) {
+                grid-column: span 1 / span 1 !important;
             }
         }
 
@@ -328,4 +385,5 @@
             </button>
         </div>
     </form>
+    <x-filament-actions::modals />
 </div>

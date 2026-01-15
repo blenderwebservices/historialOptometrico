@@ -12,6 +12,33 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#6366f1',
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         :root {
             --primary: #6366f1;
@@ -32,7 +59,7 @@
         }
 
         .premium-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: var(--bg-glass);
             backdrop-filter: blur(12px);
@@ -81,9 +108,9 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        input,
-        select,
-        textarea {
+        input:not([class*="fi-"]),
+        select:not([class*="fi-"]),
+        textarea:not([class*="fi-"]) {
             background: rgba(255, 255, 255, 0.5);
             border: 1px solid #cbd5e1;
             border-radius: 12px;
@@ -92,10 +119,64 @@
             transition: border-color 0.2s;
         }
 
-        input:focus {
+        input:not([class*="fi-"]):focus {
             outline: none;
             border-color: var(--primary);
             background: white;
+        }
+
+        /* Ensure Filament selects use their own icons and no custom background */
+        .fi-select-input {
+            background-image: none !important;
+            background-color: transparent !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            height: 2.25rem !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Fix for big icons and alignment in Filament */
+        .fi-ta-header-cell-label,
+        .fi-ta-cell-content {
+            font-size: 0.9rem !important;
+        }
+
+        .fi-dropdown-list-item {
+            font-size: 0.875rem !important;
+        }
+
+        /* Ensure labels in bulk actions and dropdowns are visible */
+        .fi-ta-bulk-action-button-label,
+        .fi-dropdown-list-item-label,
+        .fi-ta-bulk-actions-trigger-label {
+            display: inline-block !important;
+            visibility: visible !important;
+            color: inherit !important;
+        }
+
+        /* Fix the "Actionpill" or trigger button that looks invisible */
+        .fi-ta-bulk-actions-trigger {
+            background-color: #fee2e2 !important;
+            border: 1px solid #fecaca !important;
+            color: #ef4444 !important;
+            border-radius: 9999px !important;
+            padding: 0.5rem 1.25rem !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .fi-ta-bulk-actions-trigger:hover {
+            background-color: #fecaca !important;
+        }
+
+        /* Ensure the "Eliminar" item inside the dropdown is also clear */
+        .fi-ta-bulk-action-button.fi-color-danger,
+        .fi-ta-bulk-action-button.fi-color-danger span,
+        .fi-dropdown-list-item.fi-color-danger,
+        .fi-dropdown-list-item.fi-color-danger span {
+            color: #ef4444 !important;
         }
 
         label {

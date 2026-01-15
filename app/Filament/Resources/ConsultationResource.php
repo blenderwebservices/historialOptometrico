@@ -140,23 +140,45 @@ class ConsultationResource extends Resource
                                                 ->relationship('product', 'name')
                                                 ->required()
                                                 ->reactive()
-                                                ->afterStateUpdated(
-                                                    fn(Forms\Set $set, $state) =>
-                                                    $set('price_at_time', \App\Models\Product::find($state)?->price ?? 0)
-                                                )
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $product = \App\Models\Product::find($state);
+                                                    $price = $product?->price ?? 0;
+                                                    $set('price_at_time', $price);
+
+                                                    $qty = (float) ($get('quantity') ?? 1);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                                })
                                                 ->columnSpan(3),
                                             Forms\Components\TextInput::make('quantity')
                                                 ->numeric()
                                                 ->default(1)
                                                 ->required()
                                                 ->reactive()
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $price = (float) ($get('price_at_time') ?? 0);
+                                                    $qty = (float) ($state ?? 0);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                                })
                                                 ->columnSpan(1),
                                             Forms\Components\TextInput::make('price_at_time')
                                                 ->label('Precio Unit.')
                                                 ->numeric()
                                                 ->required()
                                                 ->prefix('$')
-                                                ->columnSpan(2),
+                                                ->reactive()
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $qty = (float) ($get('quantity') ?? 0);
+                                                    $price = (float) ($state ?? 0);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                                })
+                                                ->columnSpan(1),
+                                            Forms\Components\TextInput::make('row_total')
+                                                ->label('Importe')
+                                                ->prefix('$')
+                                                ->disabled()
+                                                ->dehydrated(false)
+                                                ->numeric()
+                                                ->columnSpan(1),
                                         ])
                                     ->columns(6)
                                     ->live()

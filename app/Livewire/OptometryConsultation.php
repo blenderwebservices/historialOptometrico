@@ -7,21 +7,20 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Forms;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\Concerns\InteractsWithActions;
 use App\Models\Consultation;
 use App\Models\Product;
 use App\Models\Patient;
 
-class OptometryConsultation extends Component implements HasForms
+class OptometryConsultation extends Component implements HasForms, HasActions
 {
     use InteractsWithForms;
+    use InteractsWithActions;
 
     public ?array $data = [];
     public Consultation $record;
     public $consultation_id;
-
-    public $subtotal = 0;
-    public $tax = 0;
-    public $total = 0;
 
     public function mount(Consultation $consultation = null): void
     {
@@ -31,7 +30,7 @@ class OptometryConsultation extends Component implements HasForms
             $this->consultation_id = $this->record->id;
             $this->form->fill([
                 'patient_id' => $this->record->patient_id,
-                'consultation_date' => $this->record->consultation_date->format('Y-m-d'),
+                'consultation_date' => optional($this->record->consultation_date)->format('Y-m-d'),
                 'right_eye_sph' => $this->record->right_eye_sph,
                 'right_eye_cyl' => $this->record->right_eye_cyl,
                 'right_eye_axis' => $this->record->right_eye_axis,
@@ -44,17 +43,7 @@ class OptometryConsultation extends Component implements HasForms
                 'subtotal' => $this->record->subtotal,
                 'tax' => $this->record->tax,
                 'total' => $this->record->total,
-                'consultationProducts' => $this->record->consultationProducts->map(function ($cp) {
-                    return [
-                        'product_id' => $cp->product_id,
-                        'quantity' => $cp->quantity,
-                        'price_at_time' => $cp->price_at_time,
-                    ];
-                })->toArray(),
             ]);
-            $this->subtotal = $this->record->subtotal;
-            $this->tax = $this->record->tax;
-            $this->total = $this->record->total;
         } else {
             $this->form->fill([
                 'consultation_date' => now()->format('Y-m-d'),
@@ -198,16 +187,35 @@ class OptometryConsultation extends Component implements HasForms
                         ->schema([
                                 Forms\Components\Repeater::make('consultationProducts')
                                     ->relationship()
+                                    ->label('Detalle de Productos / Venta')
+                                    ->addActionLabel('Agregar Producto')
+                                    ->live()
                                     ->schema([
                                             Forms\Components\Select::make('product_id')
                                                 ->label('Producto')
                                                 ->relationship('product', 'name')
                                                 ->required()
                                                 ->reactive()
-                                                ->afterStateUpdated(
-                                                    fn(Forms\Set $set, $state) =>
-                                                    $set('price_at_time', Product::find($state)?->price ?? 0)
-                                                )
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $product = Product::find($state);
+                                                    $price = $product?->price ?? 0;
+                                                    $set('price_at_time', $price);
+
+                                                    $qty = (float) ($get('quantity') ?? 1);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+
+                                                    // Update totals
+                                                    $products = $get('../../consultationProducts') ?? [];
+                                                    $subtotal = 0;
+                                                    foreach ($products as $product) {
+                                                        $p_qty = (float) ($product['quantity'] ?? 0);
+                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                        $subtotal += $p_qty * $p_price;
+                                                    }
+                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                                })
                                                 ->columnSpan(3),
                                             Forms\Components\TextInput::make('quantity')
                                                 ->label('Cant.')
@@ -215,30 +223,70 @@ class OptometryConsultation extends Component implements HasForms
                                                 ->default(1)
                                                 ->required()
                                                 ->reactive()
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $price = (float) ($get('price_at_time') ?? 0);
+                                                    $qty = (float) ($state ?? 0);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+
+                                                    // Update totals
+                                                    $products = $get('../../consultationProducts') ?? [];
+                                                    $subtotal = 0;
+                                                    foreach ($products as $product) {
+                                                        $p_qty = (float) ($product['quantity'] ?? 0);
+                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                        $subtotal += $p_qty * $p_price;
+                                                    }
+                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                                })
                                                 ->columnSpan(1),
                                             Forms\Components\TextInput::make('price_at_time')
                                                 ->label('Precio Unit.')
                                                 ->numeric()
                                                 ->required()
                                                 ->prefix('$')
-                                                ->columnSpan(2),
+                                                ->reactive()
+                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                                    $qty = (float) ($get('quantity') ?? 0);
+                                                    $price = (float) ($state ?? 0);
+                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+
+                                                    // Update totals
+                                                    $products = $get('../../consultationProducts') ?? [];
+                                                    $subtotal = 0;
+                                                    foreach ($products as $product) {
+                                                        $p_qty = (float) ($product['quantity'] ?? 0);
+                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                        $subtotal += $p_qty * $p_price;
+                                                    }
+                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                                })
+                                                ->columnSpan(1),
+                                            Forms\Components\TextInput::make('row_total')
+                                                ->label('Importe')
+                                                ->prefix('$')
+                                                ->disabled()
+                                                ->dehydrated(false)
+                                                ->numeric()
+                                                ->columnSpan(1),
                                         ])
                                     ->columns(6)
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                    ->extraAttributes(['class' => 'products-repeater'])
+                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                         $products = $get('consultationProducts') ?? [];
                                         $subtotal = 0;
                                         foreach ($products as $product) {
-                                            $subtotal += (float) ($product['quantity'] ?? 0) * (float) ($product['price_at_time'] ?? 0);
+                                            $qty = (float) ($product['quantity'] ?? 0);
+                                            $price = (float) ($product['price_at_time'] ?? 0);
+                                            $subtotal += $qty * $price;
                                         }
-                                        $set('subtotal', $subtotal);
-                                        $set('total', $subtotal * 1.16);
-                                        $set('tax', $subtotal * 0.16);
 
-                                        // Sync component properties for custom totals area
-                                        $this->subtotal = $subtotal;
-                                        $this->tax = $subtotal * 0.16;
-                                        $this->total = $subtotal * 1.16;
+                                        $set('subtotal', number_format($subtotal, 2, '.', ''));
+                                        $set('tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                        $set('total', number_format($subtotal * 1.16, 2, '.', ''));
                                     })
                                     ->itemLabel(fn(array $state): ?string => $state['product_id'] ? Product::find($state['product_id'])?->name : 'Nuevo Producto'),
                             ]),
@@ -270,8 +318,11 @@ class OptometryConsultation extends Component implements HasForms
 
         if ($this->record->exists) {
             $this->record->update($state);
+            // Filament handles the relationship updates automatically when relationship() is set on the repeater
         } else {
             $this->record = Consultation::create($state);
+            // Manually trigger relationship saving for new records
+            $this->form->model($this->record)->saveRelationships();
         }
 
         session()->flash('message', $this->consultation_id ? 'Consulta actualizada exitosamente.' : 'Consulta guardada exitosamente.');
