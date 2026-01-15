@@ -43,6 +43,11 @@ class OptometryConsultation extends Component implements HasForms, HasActions
                 'subtotal' => $this->record->subtotal,
                 'tax' => $this->record->tax,
                 'total' => $this->record->total,
+                'consultationProducts' => $this->record->consultationProducts->map(fn($cp) => [
+                    'product_id' => $cp->product_id,
+                    'quantity' => $cp->quantity,
+                    'price_at_time' => $cp->price_at_time,
+                ])->toArray(),
             ]);
         } else {
             $this->form->fill([
@@ -183,130 +188,175 @@ class OptometryConsultation extends Component implements HasForms, HasActions
                                         ]),
                             ]),
 
-                    Forms\Components\Section::make('Productos / Detalle de Venta')
+                    Forms\Components\Section::make('Detalle de Venta')
+                        ->headerActions([
+                            Forms\Components\Actions\Action::make('add_product')
+                                ->label('+ Agregar Producto')
+                                ->color('primary')
+                                ->action(function (Forms\Components\Repeater $component) {
+                                    $state = $component->getState();
+                                    $state[] = [
+                                        'quantity' => 1,
+                                        'price_at_time' => 0,
+                                        'row_total' => 0,
+                                    ];
+                                    $component->state($state);
+                                })
+                        ])
                         ->schema([
-                                Forms\Components\Repeater::make('consultationProducts')
-                                    ->relationship()
-                                    ->label('Detalle de Productos / Venta')
-                                    ->addActionLabel('Agregar Producto')
-                                    ->live()
-                                    ->schema([
-                                            Forms\Components\Select::make('product_id')
-                                                ->label('Producto')
-                                                ->relationship('product', 'name')
-                                                ->required()
-                                                ->reactive()
-                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
-                                                    $product = Product::find($state);
-                                                    $price = $product?->price ?? 0;
-                                                    $set('price_at_time', $price);
+                            Forms\Components\Placeholder::make('repeater_header')
+                                ->label('')
+                                ->content(view('livewire.repeater-header'))
+                                ->extraAttributes(['class' => 'repeater-header-row']),
+                            Forms\Components\Repeater::make('consultationProducts')
+                                ->relationship()
+                                ->label('')
+                                ->addable(false) // Hide the bottom add button as we have the header one
+                                ->live()
+                                ->schema([
+                                    Forms\Components\Select::make('product_id')
+                                        ->label('Producto')
+                                        ->relationship('product', 'name')
+                                        ->required()
+                                        ->reactive()
+                                        ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                            $product = Product::find($state);
+                                            $price = $product?->price ?? 0;
+                                            $set('price_at_time', $price);
 
-                                                    $qty = (float) ($get('quantity') ?? 1);
-                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                            $qty = (float) ($get('quantity') ?? 1);
 
-                                                    // Update totals
-                                                    $products = $get('../../consultationProducts') ?? [];
-                                                    $subtotal = 0;
-                                                    foreach ($products as $product) {
-                                                        $p_qty = (float) ($product['quantity'] ?? 0);
-                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
-                                                        $subtotal += $p_qty * $p_price;
-                                                    }
-                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
-                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
-                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
-                                                })
-                                                ->columnSpan(3),
-                                            Forms\Components\TextInput::make('quantity')
-                                                ->label('Cant.')
-                                                ->numeric()
-                                                ->default(1)
-                                                ->required()
-                                                ->reactive()
-                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
-                                                    $price = (float) ($get('price_at_time') ?? 0);
-                                                    $qty = (float) ($state ?? 0);
-                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                            // Update totals
+                                            $products = $get('../../consultationProducts') ?? [];
+                                            $subtotal = 0;
+                                            foreach ($products as $product) {
+                                                $p_qty = (float) ($product['quantity'] ?? 0);
+                                                $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                $subtotal += $p_qty * $p_price;
+                                            }
+                                            $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                            $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                            $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                        })
+                                        ->columnSpan(7),
+                                    Forms\Components\TextInput::make('quantity')
+                                        ->label('Cantidad')
+                                        ->numeric()
+                                        ->default(1)
+                                        ->required()
+                                        ->reactive()
+                                        ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                            $price = (float) ($get('price_at_time') ?? 0);
+                                            $qty = (float) ($state ?? 0);
 
-                                                    // Update totals
-                                                    $products = $get('../../consultationProducts') ?? [];
-                                                    $subtotal = 0;
-                                                    foreach ($products as $product) {
-                                                        $p_qty = (float) ($product['quantity'] ?? 0);
-                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
-                                                        $subtotal += $p_qty * $p_price;
-                                                    }
-                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
-                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
-                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
-                                                })
-                                                ->columnSpan(1),
-                                            Forms\Components\TextInput::make('price_at_time')
-                                                ->label('Precio Unit.')
-                                                ->numeric()
-                                                ->required()
-                                                ->prefix('$')
-                                                ->reactive()
-                                                ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
-                                                    $qty = (float) ($get('quantity') ?? 0);
-                                                    $price = (float) ($state ?? 0);
-                                                    $set('row_total', number_format($qty * $price, 2, '.', ''));
+                                            // Update totals
+                                            $products = $get('../../consultationProducts') ?? [];
+                                            $subtotal = 0;
+                                            foreach ($products as $product) {
+                                                $p_qty = (float) ($product['quantity'] ?? 0);
+                                                $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                $subtotal += $p_qty * $p_price;
+                                            }
+                                            $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                            $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                            $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                        })
+                                        ->columnSpan(2),
+                                    Forms\Components\TextInput::make('price_at_time')
+                                        ->label('P. Unitario')
+                                        ->numeric()
+                                        ->required()
+                                        ->reactive()
+                                        ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                            $qty = (float) ($get('quantity') ?? 0);
+                                            $price = (float) ($state ?? 0);
 
-                                                    // Update totals
-                                                    $products = $get('../../consultationProducts') ?? [];
-                                                    $subtotal = 0;
-                                                    foreach ($products as $product) {
-                                                        $p_qty = (float) ($product['quantity'] ?? 0);
-                                                        $p_price = (float) ($product['price_at_time'] ?? 0);
-                                                        $subtotal += $p_qty * $p_price;
-                                                    }
-                                                    $set('../../subtotal', number_format($subtotal, 2, '.', ''));
-                                                    $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
-                                                    $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
-                                                })
-                                                ->columnSpan(1),
-                                            Forms\Components\TextInput::make('row_total')
-                                                ->label('Importe')
-                                                ->prefix('$')
-                                                ->disabled()
-                                                ->dehydrated(false)
-                                                ->numeric()
-                                                ->columnSpan(1),
-                                        ])
-                                    ->columns(6)
-                                    ->extraAttributes(['class' => 'products-repeater'])
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
-                                        $products = $get('consultationProducts') ?? [];
-                                        $subtotal = 0;
-                                        foreach ($products as $product) {
-                                            $qty = (float) ($product['quantity'] ?? 0);
-                                            $price = (float) ($product['price_at_time'] ?? 0);
-                                            $subtotal += $qty * $price;
-                                        }
+                                            // Update totals
+                                            $products = $get('../../consultationProducts') ?? [];
+                                            $subtotal = 0;
+                                            foreach ($products as $product) {
+                                                $p_qty = (float) ($product['quantity'] ?? 0);
+                                                $p_price = (float) ($product['price_at_time'] ?? 0);
+                                                $subtotal += $p_qty * $p_price;
+                                            }
+                                            $set('../../subtotal', number_format($subtotal, 2, '.', ''));
+                                            $set('../../tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                            $set('../../total', number_format($subtotal * 1.16, 2, '.', ''));
+                                        })
+                                        ->columnSpan(2),
+                                    Forms\Components\Placeholder::make('row_total_display')
+                                        ->label('Importe')
+                                        ->content(fn ($get) => '$' . number_format((float) ($get('quantity') ?? 1) * (float) ($get('price_at_time') ?? 0), 2))
+                                        ->extraAttributes(['class' => 'row-total-display'])
+                                        ->columnSpan(1),
+                                ])
+                                ->columns(12)
+                                ->extraAttributes(['class' => 'products-repeater-table'])
+                                ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
+                                    $products = $get('consultationProducts') ?? [];
+                                    $subtotal = 0;
+                                    foreach ($products as $product) {
+                                        $qty = (float) ($product['quantity'] ?? 0);
+                                        $price = (float) ($product['price_at_time'] ?? 0);
+                                        $subtotal += $qty * $price;
+                                    }
 
-                                        $set('subtotal', number_format($subtotal, 2, '.', ''));
-                                        $set('tax', number_format($subtotal * 0.16, 2, '.', ''));
-                                        $set('total', number_format($subtotal * 1.16, 2, '.', ''));
-                                    })
-                                    ->itemLabel(fn(array $state): ?string => $state['product_id'] ? Product::find($state['product_id'])?->name : 'Nuevo Producto'),
-                            ]),
+                                    $set('subtotal', number_format($subtotal, 2, '.', ''));
+                                    $set('tax', number_format($subtotal * 0.16, 2, '.', ''));
+                                    $set('total', number_format($subtotal * 1.16, 2, '.', ''));
+                                })
+                                // Hide default reorder and delete to customize them later in CSS
+                                ->reorderable(false),
+                        ]),
 
                     // Totals and Notes Section
                     Forms\Components\Grid::make(12)
                         ->schema([
-                                Forms\Components\Textarea::make('internal_notes')
-                                    ->label('Notas Internas')
-                                    ->rows(4)
-                                    ->columnSpan(8),
+                            Forms\Components\Placeholder::make('totals_spacer')
+                                ->label('')
+                                ->content('')
+                                ->columnSpan(8),
 
-                                Forms\Components\Section::make('Resumen')
-                                    ->schema([
-                                            Forms\Components\TextInput::make('subtotal')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
-                                            Forms\Components\TextInput::make('tax')->label('IVA (16%)')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 600;']),
-                                            Forms\Components\TextInput::make('total')->readOnly()->prefix('$')->extraInputAttributes(['style' => 'font-weight: 700; color: var(--primary); font-size: 1.1rem;']),
-                                        ])
-                                    ->columnSpan(4),
-                            ]),
+                            Forms\Components\Section::make('Resumen')
+                                ->schema([
+                                    Forms\Components\Grid::make(12)
+                                        ->schema([
+                                            Forms\Components\Placeholder::make('subtotal_label')
+                                                ->content('Subtotal:')
+                                                ->hiddenLabel()
+                                                ->columnSpan(8)
+                                                ->extraAttributes(['style' => 'text-align: right; padding-right: 1rem; color: var(--text-muted); font-weight: 500;']),
+                                            Forms\Components\Placeholder::make('subtotal_val')
+                                                ->content(fn ($get) => '$' . number_format((float) ($get('subtotal') ?? 0), 2))
+                                                ->hiddenLabel()
+                                                ->columnSpan(4)
+                                                ->extraAttributes(['style' => 'text-align: right; font-weight: 700; color: var(--text-main);']),
+
+                                            Forms\Components\Placeholder::make('tax_label')
+                                                ->content('IVA (16%):')
+                                                ->hiddenLabel()
+                                                ->columnSpan(8)
+                                                ->extraAttributes(['style' => 'text-align: right; padding-right: 1rem; color: var(--text-muted); font-weight: 500;']),
+                                            Forms\Components\Placeholder::make('tax_val')
+                                                ->content(fn ($get) => '$' . number_format((float) ($get('tax') ?? 0), 2))
+                                                ->hiddenLabel()
+                                                ->columnSpan(4)
+                                                ->extraAttributes(['style' => 'text-align: right; font-weight: 700; color: var(--text-main);']),
+
+                                            Forms\Components\Placeholder::make('total_label')
+                                                ->content('Total:')
+                                                ->hiddenLabel()
+                                                ->columnSpan(6)
+                                                ->extraAttributes(['style' => 'text-align: right; padding-right: 1rem; font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-top: 1rem;']),
+                                            Forms\Components\Placeholder::make('total_val')
+                                                ->content(fn ($get) => '$' . number_format((float) ($get('total') ?? 0), 2))
+                                                ->hiddenLabel()
+                                                ->columnSpan(6)
+                                                ->extraAttributes(['style' => 'text-align: right; font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 1rem;']),
+                                        ]),
+                                ])
+                                ->columnSpan(4),
+                        ]),
                 ])
             ->statePath('data')
             ->model($this->record);
