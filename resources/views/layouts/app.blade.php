@@ -283,6 +283,7 @@
     </style>
     @filamentStyles
     @livewireStyles
+    @stack('styles')
 </head>
 
 <body class="mobile-padding">
@@ -292,6 +293,7 @@
                 <a href="{{ route('home') }}" class="nav-link">Home</a>
                 @auth
                     <a href="{{ route('consultations.list') }}" class="nav-link">Mis Consultas</a>
+                    <a href="{{ route('consultations.calendar') }}" class="nav-link">Calendario</a>
                 @endauth
                 <a href="/admin" class="nav-link">Dashboard</a>
             </div>
@@ -331,6 +333,7 @@
     </div>
     @livewireScripts
     @filamentScripts
+    @stack('scripts')
 </body>
 
 </html>

@@ -21,6 +21,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/consultations', \App\Livewire\ConsultationList::class)->name('consultations.list');
+    Route::get('/consultation-calendar', \App\Livewire\ConsultationCalendar::class)->name('consultations.calendar');
     Route::get('/consultation-new', \App\Livewire\OptometryConsultation::class)->name('consultation.new');
     Route::get('/consultation/{consultation}/edit', \App\Livewire\OptometryConsultation::class)->name('consultation.edit');
 });
